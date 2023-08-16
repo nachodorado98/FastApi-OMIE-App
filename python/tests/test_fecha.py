@@ -55,10 +55,40 @@ def test_fecha_correcta(dia, mes, ano):
 	assert fecha.mes==mes
 	assert fecha.ano==ano
 	assert fecha.fecha_datetime==datetime.datetime(ano,mes,dia)
+	assert fecha.fecha_str==datetime.datetime(ano,mes,dia).strftime("%d/%m/%Y")
+	assert fecha.fecha_str_formato==datetime.datetime(ano,mes,dia).strftime("%Y-%m-%d")
 
-def test_fecha_defecto(fecha):
+def test_fecha_defecto():
+
+	fecha=Fecha()
 
 	assert fecha.dia==1
 	assert fecha.mes==1
 	assert fecha.ano==2019
 	assert fecha.fecha_datetime==datetime.datetime(2019,1,1)
+	assert fecha.fecha_str==datetime.datetime(2019,1,1).strftime("%d/%m/%Y")
+	assert fecha.fecha_str_formato==datetime.datetime(2019,1,1).strftime("%Y-%m-%d")
+
+@pytest.mark.parametrize(["dia","mes","ano"],
+	[
+		(28,2,2023),
+		(31,1,2022),
+		(1,10,2019),
+		(6,8,2023),
+		(13,4,2019),
+		(22,6,2021),
+		(29,2,2020),
+		(1,1,2019),
+		(datetime.datetime.today().day, datetime.datetime.today().month, datetime.datetime.today().year)
+	]
+)
+def test_fecha_desde_datetime(dia, mes, ano):
+
+	fecha=Fecha.desdeDatetime(datetime.datetime(ano,mes,dia))
+
+	assert fecha.dia==dia
+	assert fecha.mes==mes
+	assert fecha.ano==ano
+	assert fecha.fecha_datetime==datetime.datetime(ano,mes,dia)
+	assert fecha.fecha_str==datetime.datetime(ano,mes,dia).strftime("%d/%m/%Y")
+	assert fecha.fecha_str_formato==datetime.datetime(ano,mes,dia).strftime("%Y-%m-%d")

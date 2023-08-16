@@ -14,11 +14,16 @@ def mercado():
 	return Mercado()
 
 @pytest.fixture
-def fecha():
+def fecha_inicio():
 
 	return Fecha()
 
 @pytest.fixture
-def scraper(mercado, fecha):
+def fecha_fin():
 
-	return Scraper(mercado, fecha)
+	return Fecha(2,1,2019)
+
+@pytest.fixture
+def scraper(mercado, fecha_inicio, fecha_fin):
+
+	return Scraper(mercado, fecha_inicio, fecha_fin)
