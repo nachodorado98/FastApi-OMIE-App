@@ -3,38 +3,21 @@ import requests
 from typing import List
 import pandas as pd
 
+from .fecha import Fecha
+from .mercado import Mercado
+
 # Clase para scrapear
 class Scraper:
 
-	def __init__(self, dia:int=1, mes:int=1, ano:int=2019)->None:
+	def __init__(self, mercado:Mercado, fecha:Fecha)->None:
 
-		self.fecha_datetime=self.convertirDatetime(dia,mes,ano)
-		self.dia=self.fecha_datetime.day
-		self.mes=self.fecha_datetime.month
-		self.ano=self.fecha_datetime.year
-		self.pais=1
-
-	# Metodo para convertir la fecha a un datetime
-	def convertirDatetime(self, dia:int, mes:int, ano:int)->datetime.datetime:
-
-		try:
-
-			fecha_datetime=datetime.datetime(ano, mes, dia)
-
-			if fecha_datetime>datetime.datetime.today():
-
-				raise Exception("La fecha es erronea")
-
-			return fecha_datetime
-
-		except ValueError as e:
-
-			raise Exception("La fecha es erronea")
+		self.mercado=mercado
+		self.fecha=fecha
 
 	# Metodo para extraer la data de la peticion
 	def __extraerData(self)->str:
 
-		url=f"""https://www.omie.es/sites/default/files/dados/AGNO_{self.ano}/MES_{self.mes:02d}/TXT/INT_PBC_TECNOLOGIAS_H_{self.pais}_{self.dia:02d}_{self.mes:02d}_{self.ano}_{self.dia:02d}_{self.mes:02d}_{self.ano}.TXT"""
+		url=f"""https://www.omie.es/sites/default/files/dados/AGNO_{self.fecha.ano}/MES_{self.fecha.mes:02d}/TXT/INT_PBC_TECNOLOGIAS_H_{self.mercado.numero}_{self.fecha.dia:02d}_{self.fecha.mes:02d}_{self.fecha.ano}_{self.fecha.dia:02d}_{self.fecha.mes:02d}_{self.fecha.ano}.TXT"""
 
 		peticion=requests.get(url)
 
@@ -74,7 +57,7 @@ class Scraper:
 	# Metodo para scrapear la data
 	def scrapear(self)->pd.DataFrame:
 
-		print(self.fecha_datetime.strftime("%d/%m/%Y"))
+		print(self.fecha.fecha_str)
 
 		data=self.__extraerData()
 
