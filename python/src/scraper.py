@@ -2,16 +2,18 @@ import datetime
 import requests
 from typing import List
 import pandas as pd
+import time
 
 from .fecha import Fecha
 from .mercado import Mercado
+from .database.conexion import Conexion
 
 # Clase para scrapear
 class Scraper:
 
 	def __init__(self,
 				mercado:Mercado,
-				fecha_inicio:Fecha,
+				fecha_inicio:Fecha=Fecha(),
 				fecha_fin:Fecha=Fecha(datetime.datetime.today().day, datetime.datetime.today().month, datetime.datetime.today().year)
 				)->None:
 
@@ -71,9 +73,6 @@ class Scraper:
 		# Cambio de espacio en blanco por cero
 		filas_cambiadas=[[j if j!="" else 0 for j in i.split(";")] for i in filas[:-2]]
 
-		# Eliminacion del 0 del final de la cabecera
-		fila_cabecera=filas_cambiadas[0][:-1]
-
 		# Funcion para limpiar los formatos de la fila
 		def limpiarFormatosFila(lista:List)->List:
 
@@ -85,42 +84,53 @@ class Scraper:
 			# Hora a entero
 			hora=int(lista[1])
 
-			# Eliminacion de cero y cambio de comas por puntos pasando a float
-			resto=[float(str(valor).replace(".","").replace(",",".")) for valor in lista[2:-1]]
+			# Tope que sera para el cero si tiene 15 valores o para el nuevo campo ALV (Julio 2023) si tiene 16 valores (no le queremos)
+			tope=-1 if len(lista)==15 else -2
 
-			return [fecha, hora]+resto
+			# Eliminacion de cero (y posible campo ALV) y cambio de comas por puntos pasando a float
+			resto=[float(str(valor).replace(".","").replace(",",".")) for valor in lista[2:tope]]
+
+			fila_final=[fecha, hora]+resto
+
+			assert len(fila_final)==14
+
+			return fila_final
 
 		filas=list(map(limpiarFormatosFila, filas_cambiadas[1:]))
 
-		filas_definitivas=[fila_cabecera]+filas
+		filas_tuplas=[tuple(fila) for fila in filas]
 
-		return filas_definitivas
+		return filas_tuplas
 
-	# Metodo para el proceso de extracion y transformacion de una fecha
-	def __ExtraccionTransformacion(self, fecha:Fecha)->List[List]:
+	# Metodo para almacenar la data
+	def __almacenarData(self, data_limpia:List[List])->None:
+
+		con=Conexion()
+
+		con.insertarData(self.mercado.tabla, data_limpia)
+
+		con.cerrarConexion()
+
+	# Metodo para el proceso de extracion, transformacion y almacenamiento (ETL) de la data de una fecha
+	def ETL(self, fecha:Fecha)->None:
 
 		print(fecha.fecha_str)
 
 		data=self.__extraerData(fecha.dia, fecha.mes, fecha.ano)
 
-		return self.__limpiarData(data)
+		data_limpia=self.__limpiarData(data)
 
-	# Metodo para crear la tabla
-	def __crearTabla(self, data_limpia:List[List])->pd.DataFrame:
-
-		return pd.DataFrame(data_limpia[1:], columns=data_limpia[0])
+		self.__almacenarData(data_limpia)
 
 	# Metodo para scrapear la data
-	def scrapear(self)->pd.DataFrame:
-
-		tablas=[]
+	def scrapear(self)->None:
 
 		for fecha in self.fechas:
 
-			data_limpia=self.__ExtraccionTransformacion(fecha)
+			self.ETL(fecha)
 
-			tabla=self.__crearTabla(data_limpia)
+			time.sleep(0.5)
 
-			tablas.append(tabla)
+	def __repr__(self)->str:
 
-		return pd.concat(tablas)
+		return f"Scraper({self.mercado.mercado}, {self.fecha_inicio},  {self.fecha_fin})"

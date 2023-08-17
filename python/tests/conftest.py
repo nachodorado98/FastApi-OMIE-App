@@ -7,6 +7,7 @@ import pytest
 from src.scraper import Scraper
 from src.fecha import Fecha
 from src.mercado import Mercado
+from src.database.conexion import Conexion
 
 @pytest.fixture
 def mercado():
@@ -27,3 +28,14 @@ def fecha_fin():
 def scraper(mercado, fecha_inicio, fecha_fin):
 
 	return Scraper(mercado, fecha_inicio, fecha_fin)
+
+@pytest.fixture
+def conexion():
+
+	con=Conexion()
+
+	con.c.execute("DELETE FROM prodespana")
+
+	con.bbdd.commit()
+
+	return con

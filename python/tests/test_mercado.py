@@ -11,15 +11,23 @@ def test_mercado_incorrecto(nombre):
 
 		Mercado(nombre)
 
-@pytest.mark.parametrize(["nombre", "numero"],
-	[("españa",1),("portugal",2),("mibel",9)]
+@pytest.mark.parametrize(["nombre", "numero","tabla"],
+	[
+		("españa",1, "prodespana"),
+		("portugal",2, "prodportugal"),
+		("mibel",9, "prodmibel")
+	]
 )
-def test_mercado_correcto(nombre, numero):
+def test_mercado_correcto(nombre, numero, tabla):
 
 	mercado=Mercado(nombre)
 
+	assert mercado.mercado==nombre.upper()
 	assert mercado.numero==numero
+	assert mercado.tabla==tabla
 
 def test_mercado_defecto(mercado):
 
+	assert mercado.mercado=="ESPAÑA"
 	assert mercado.numero==1
+	assert mercado.tabla=="prodespana"

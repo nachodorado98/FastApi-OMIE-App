@@ -29,11 +29,22 @@ def test_crear_scraper_fecha_invalida(fecha_inicio, fecha_fin):
 		(Fecha(datetime.datetime.today().day, datetime.datetime.today().month, datetime.datetime.today().year),)
 	]
 )
-def test_crear_scraper_fecha_defecto(fecha_inicio):
+def test_crear_scraper_fecha_defecto_fin(fecha_inicio):
 
 	scraper=Scraper(Mercado("España"), fecha_inicio)
 
 	assert scraper.fecha_inicio.fecha_datetime<=scraper.fecha_fin.fecha_datetime
+	assert scraper.fecha_fin.dia==datetime.datetime.today().day
+	assert scraper.fecha_fin.mes==datetime.datetime.today().month
+	assert scraper.fecha_fin.ano==datetime.datetime.today().year
+
+def test_crear_scraper_fecha_defecto_inicio_fin():
+
+	scraper=Scraper(Mercado("España"))
+
+	assert scraper.fecha_inicio.dia==1
+	assert scraper.fecha_inicio.mes==1
+	assert scraper.fecha_inicio.ano==2019
 	assert scraper.fecha_fin.dia==datetime.datetime.today().day
 	assert scraper.fecha_fin.mes==datetime.datetime.today().month
 	assert scraper.fecha_fin.ano==datetime.datetime.today().year
@@ -82,10 +93,14 @@ def test_extraer_data_directamente_incorrecto(scraper):
 		(22,2,2023),
 		(10,1,2021),
 		(13,4,2019),
-		(22,6,2019)
+		(22,6,2019),
+		(30,7,2023),
+		(6,8,2023),
+		(datetime.datetime.today().day, datetime.datetime.today().month, datetime.datetime.today().year)
+
 	]
 )
-def test_extraer_data_directamente(scraper, dia, mes, ano):
+def test_extraer_data(scraper, dia, mes, ano):
 
 	fecha=Fecha(dia, mes, ano)
 
@@ -105,10 +120,13 @@ def test_limpiar_data_directamente_incorrecto(scraper):
 		(22,2,2023),
 		(10,1,2021),
 		(13,4,2019),
-		(22,6,2019)
+		(22,6,2019),
+		(30,7,2023),
+		(6,8,2023),
+		(datetime.datetime.today().day, datetime.datetime.today().month, datetime.datetime.today().year)
 	]
 )
-def test_limpiar_data_directamente(scraper, dia, mes, ano):
+def test_limpiar_data(scraper, dia, mes, ano):
 
 	fecha=Fecha(dia, mes, ano)
 
@@ -117,94 +135,92 @@ def test_limpiar_data_directamente(scraper, dia, mes, ano):
 	data_limpia=scraper._Scraper__limpiarData(data)
 
 	assert isinstance(data_limpia, list)
-	assert "Fecha" in data_limpia[0]
+	assert "Fecha" not in data_limpia[0]
 
-	for registro in data_limpia[1:]:
+	for registro in data_limpia:
 
+		assert len(registro)==14
 		assert fecha.fecha_str_formato in registro
 		assert isinstance(registro[1],int)
+		assert isinstance(registro, tuple)
 
-def test_extraccion_transformacion_directamente_incorrecto(scraper):
+def test_almacenar_data_directamente_incorrecto(scraper):
 
-	with pytest.raises(Exception):
+	with pytest.raises(AttributeError):
 
-		scraper.__ExtraccionTransformacion("Fecha")
+		scraper.__almacenarData("Data")
 
 @pytest.mark.parametrize(["dia","mes","ano"],
 	[
 		(22,2,2023),
 		(10,1,2021),
 		(13,4,2019),
-		(22,6,2019)
+		(22,6,2019),
+		(30,7,2023),
+		(6,8,2023),
+		(datetime.datetime.today().day, datetime.datetime.today().month, datetime.datetime.today().year)
 	]
 )
-def test_extraccion_transformacion_directamente(scraper, dia, mes, ano):
-
-	fecha=Fecha(dia, mes, ano)
-
-	data_limpia=scraper._Scraper__ExtraccionTransformacion(fecha)
-
-	assert isinstance(data_limpia, list)
-	assert "Fecha" in data_limpia[0]
-
-	for registro in data_limpia[1:]:
-
-		assert fecha.fecha_str_formato in registro
-		assert isinstance(registro[1],int)
-
-@pytest.mark.parametrize(["dia","mes","ano"],
-	[
-		(22,2,2023),
-		(10,1,2021),
-		(13,4,2019),
-		(22,6,2019)
-	]
-)
-def test_resultados_procesos_iguales(scraper, dia, mes, ano):
+def test_almacenar_data(scraper, conexion, dia, mes, ano):
 
 	fecha=Fecha(dia, mes, ano)
 
 	data=scraper._Scraper__extraerData(dia, mes, ano)
 
-	data_limpia1=scraper._Scraper__limpiarData(data)
+	data_limpia=scraper._Scraper__limpiarData(data)
 
-	data_limpia2=scraper._Scraper__ExtraccionTransformacion(fecha)
+	scraper._Scraper__almacenarData(data_limpia)
 
-	assert data_limpia1==data_limpia2
+	conexion.c.execute(f"SELECT fecha, hora FROM {scraper.mercado.tabla} ORDER BY hora")
 
-def test_crear_tabla_directamente_incorrecto(scraper):
+	registros=conexion.c.fetchall()
 
-	with pytest.raises(AttributeError):
-
-		scraper.__crearTabla("Data")
+	assert len(registros)==24
+	assert registros[0]["fecha"]==fecha.fecha_datetime.date()
+	assert registros[-1]["fecha"]==fecha.fecha_datetime.date()
+	assert registros[0]["hora"]==1
+	assert registros[-1]["hora"]==24
 
 @pytest.mark.parametrize(["dia","mes","ano"],
 	[
 		(22,2,2023),
 		(10,1,2021),
 		(13,4,2019),
-		(22,6,2019)
+		(22,6,2019),
+		(30,7,2023),
+		(6,8,2023),
+		(datetime.datetime.today().day, datetime.datetime.today().month, datetime.datetime.today().year)
 	]
 )
-def test_crear_tabla_directamente(scraper, dia, mes, ano):
+def test_ETL(scraper, conexion, dia, mes, ano):
 
 	fecha=Fecha(dia, mes, ano)
 
-	data_limpia=scraper._Scraper__ExtraccionTransformacion(fecha)
+	scraper.ETL(fecha)
 
-	tabla=scraper._Scraper__crearTabla(data_limpia)
+	conexion.c.execute(f"SELECT fecha, hora FROM {scraper.mercado.tabla} ORDER BY hora")
 
-	assert isinstance(tabla, pd.DataFrame)
+	registros=conexion.c.fetchall()
 
-	for fila_fecha in tabla["Fecha"]:
+	assert len(registros)==24
+	assert registros[0]["fecha"]==fecha.fecha_datetime.date()
+	assert registros[-1]["fecha"]==fecha.fecha_datetime.date()
+	assert registros[0]["hora"]==1
+	assert registros[-1]["hora"]==24
 
-		assert fecha.fecha_str_formato==fila_fecha
+def test_scrapear(scraper, conexion):
 
-def test_scrapear(scraper):
+	fecha_inicio=scraper.fecha_inicio.fecha_datetime.date()
+	fecha_fin=scraper.fecha_fin.fecha_datetime.date()
 
-	tabla=scraper.scrapear()
+	scraper.scrapear()
 
-	assert tabla["Fecha"].iloc[0]==scraper.fecha_inicio.fecha_str_formato
-	assert tabla["Hora"].iloc[0]==1
-	assert tabla["Fecha"].iloc[-1]==scraper.fecha_fin.fecha_str_formato
-	assert tabla["Hora"].iloc[-1]==24
+	conexion.c.execute(f"SELECT fecha, hora FROM {scraper.mercado.tabla} ORDER BY fecha, hora")
+
+	registros=conexion.c.fetchall()
+
+	assert len(registros)==48
+	assert registros[0]["fecha"]==fecha_inicio
+	assert registros[-1]["fecha"]==fecha_fin
+	assert registros[0]["hora"]==1
+	assert registros[-1]["hora"]==24
