@@ -1,6 +1,7 @@
 import psycopg2
 from psycopg2.extras import RealDictCursor
-from typing import List
+from typing import List, Optional
+import datetime
 
 from .confconexion import *
 
@@ -35,3 +36,25 @@ class Conexion:
 							data)
 
 		self.bbdd.commit()
+
+	# Metodo para saber si la tabla esta vacia
+	def esta_vacia(self, tabla:str)->bool:
+
+		self.c.execute(f"""SELECT *
+							FROM {tabla}""")
+
+		return True if self.c.fetchall()==[] else False
+
+	# Metodo para obtener la ultima fecha insertada
+	def ultima_fecha(self, tabla:str)->Optional[datetime.datetime]:
+
+		if self.esta_vacia(tabla):
+
+			return None
+
+		self.c.execute(f"""SELECT MAX(fecha) AS fecha_maxima
+							FROM {tabla}""")
+
+		fecha_maxima=self.c.fetchone()
+
+		return datetime.datetime(fecha_maxima["fecha_maxima"].year, fecha_maxima["fecha_maxima"].month, fecha_maxima["fecha_maxima"].day)

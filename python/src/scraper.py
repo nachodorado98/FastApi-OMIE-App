@@ -129,7 +129,7 @@ class Scraper:
 
 			self.ETL(fecha)
 
-			time.sleep(0.5)
+			time.sleep(0.25)
 
 	def __repr__(self)->str:
 

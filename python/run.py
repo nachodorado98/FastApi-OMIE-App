@@ -1,7 +1,18 @@
 from src import crearScraper
-from src.fecha import Fecha
 from src.mercado import Mercado
 
-scraper=crearScraper(Mercado("España"), Fecha(6,8,2022), Fecha(10,8,2022))
+# Funcion que scrapea segun el objeto creado
+def scrapearData(mercado:str)->None:
 
-scraper.scrapear()
+	try:
+
+		scraper=crearScraper(Mercado(mercado))
+
+		scraper.scrapear()
+
+	except Exception:
+
+		print("Tabla actualizada a fecha actual")
+
+
+scrapearData("España")

@@ -36,6 +36,16 @@ class Fecha:
 
 		return cls(fecha_datetime.day, fecha_datetime.month, fecha_datetime.year)
 
+	# Metodo para aumentar la fecha n dias
+	def aumentarDias(self, dias:int)->None:
+
+		self.fecha_datetime=self.fecha_datetime+datetime.timedelta(days=dias)
+		self.dia=self.fecha_datetime.day
+		self.mes=self.fecha_datetime.month
+		self.ano=self.fecha_datetime.year
+		self.fecha_str=self.fecha_datetime.strftime("%d/%m/%Y")
+		self.fecha_str_formato=self.fecha_datetime.strftime("%Y-%m-%d")
+
 	def __repr__(self)->str:
 
 		return f"Fecha({self.dia}, {self.mes}, {self.ano})"

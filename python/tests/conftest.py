@@ -36,6 +36,10 @@ def conexion():
 
 	con.c.execute("DELETE FROM prodespana")
 
+	con.c.execute("DELETE FROM prodportugal")
+
+	con.c.execute("DELETE FROM prodmibel")
+
 	con.bbdd.commit()
 
 	return con

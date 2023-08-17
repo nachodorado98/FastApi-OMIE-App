@@ -5,6 +5,7 @@ import pandas as pd
 from src.scraper import Scraper
 from src.fecha import Fecha
 from src.mercado import Mercado
+from src import crearScraper
 
 
 @pytest.mark.parametrize(["fecha_inicio","fecha_fin"],
@@ -224,3 +225,66 @@ def test_scrapear(scraper, conexion):
 	assert registros[-1]["fecha"]==fecha_fin
 	assert registros[0]["hora"]==1
 	assert registros[-1]["hora"]==24
+
+
+@pytest.mark.parametrize(["mercado"],
+	[("ESPAÑA",),("PORTUGAL",),("MIBEL",)]
+)
+def test_crear_scraper_tabla_vacia(conexion, mercado):
+
+	scraper=crearScraper(Mercado(mercado))
+
+	assert scraper.fecha_inicio.dia==1
+	assert scraper.fecha_inicio.mes==1
+	assert scraper.fecha_inicio.ano==2019
+	assert scraper.fecha_fin.dia==datetime.datetime.today().day
+	assert scraper.fecha_fin.mes==datetime.datetime.today().month
+	assert scraper.fecha_fin.ano==datetime.datetime.today().year
+	assert scraper.mercado.mercado==mercado
+
+@pytest.mark.parametrize(["tabla","mercado"],
+	[
+		("prodespana", "ESPAÑA"),
+		("prodportugal", "PORTUGAL"),
+		("prodmibel", "MIBEL",)
+	]
+)
+def test_crear_scraper_tabla_llena(conexion, tabla, mercado):
+
+	data=[("2019-1-1", 1, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
+			("2020-1-1", 2, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
+			("2019-6-1", 1, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
+			("2023-8-16", 1, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
+			("2019-1-1", 2, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
+			("2019-1-1", 3, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)]
+
+	conexion.insertarData(tabla, data)
+
+	scraper=crearScraper(Mercado(mercado))
+
+	assert scraper.fecha_inicio.dia==17
+	assert scraper.fecha_inicio.mes==8
+	assert scraper.fecha_inicio.ano==2023
+	assert scraper.fecha_fin.dia==datetime.datetime.today().day
+	assert scraper.fecha_fin.mes==datetime.datetime.today().month
+	assert scraper.fecha_fin.ano==datetime.datetime.today().year
+	assert scraper.mercado.mercado==mercado
+
+@pytest.mark.parametrize(["tabla","mercado"],
+	[
+		("prodespana", "ESPAÑA"),
+		("prodportugal", "PORTUGAL"),
+		("prodmibel", "MIBEL",)
+	]
+)
+def test_crear_scraper_tabla_actualizada(conexion, tabla, mercado):
+
+	fecha=Fecha(datetime.datetime.today().day, datetime.datetime.today().month, datetime.datetime.today().year)
+
+	data=[(fecha.fecha_str_formato, 1, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)]
+
+	conexion.insertarData(tabla, data)
+
+	with pytest.raises(Exception):
+	
+		crearScraper(Mercado(mercado))
