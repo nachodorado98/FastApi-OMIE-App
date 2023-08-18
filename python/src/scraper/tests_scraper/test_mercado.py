@@ -1,6 +1,6 @@
 import pytest
 
-from src.mercado import Mercado
+from src_scraper.mercado import Mercado
 
 @pytest.mark.parametrize(["nombre"],
 	[("espana",),(1,),("mercado",)]

@@ -1,5 +1,5 @@
 BBDD="bbdd_omie_data"
-HOST="localhost"
+HOST="bbdd"
 USUARIO="postgres"
 CONTRASENA="password"
 PUERTO=5432

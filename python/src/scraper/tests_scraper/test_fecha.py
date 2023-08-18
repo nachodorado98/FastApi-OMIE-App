@@ -1,7 +1,7 @@
 import pytest
 import datetime
 
-from src.fecha import Fecha
+from src_scraper.fecha import Fecha
 
 @pytest.mark.parametrize(["dia","mes","ano"],
 	[

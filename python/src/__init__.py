@@ -1,38 +1,44 @@
-import datetime
-from typing import Optional
+from fastapi import FastAPI
+import time
 
-from .scraper import Scraper
-from .fecha import Fecha
-from .mercado import Mercado
-from .database.conexion import Conexion
+from .metadata.confmetadata import *
+from .routers.inicio import router_inicio
 
-# Funcion para crear un objeto scraper segun condiciones de la BBDD
-def crearScraper(mercado:Mercado)->Optional[Scraper]:
+from .scraper.src_scraper import crearScraper
+from .scraper.src_scraper.mercado import Mercado
 
-	con=Conexion()
+# Funcion que scrapea segun el objeto creado
+def scrapearData(mercado:str)->None:
 
-	# Scraper desde inicio
-	if con.esta_vacia(mercado.tabla):
+	try:
 
-		print("Desde inicio")
+		scraper=crearScraper(Mercado(mercado))
 
-		return Scraper(mercado)
+		if scraper is not None:
 
-	ultima_fecha=con.ultima_fecha(mercado.tabla)
+			scraper.scrapear()
 
-	# Scraper desde la fecha siguiente a la ultima
-	if ultima_fecha.date()!=datetime.datetime.today().date():
+	except AttributeError as e:
 
-		fecha=Fecha.desdeDatetime(ultima_fecha)
+		print("Reconectando...")
 
-		fecha.aumentarDias(1)
+		time.sleep(5)
 
-		print(f"Desde {fecha.fecha_str}")
+		scrapearData(mercado)
 
-		return Scraper(mercado, fecha)
+# Funcion para crear la app
+def crear_app():
 
-	# No hay scraper, tabla actualizada
-	else:
+	app=FastAPI(title=TITULO,
+				description=DESCRIPCION,
+				version=VERSION,
+				contact=CONTACTO,
+				license_info=LICENCIA)
 
-		raise Exception("Tabla ya actualizada")
+	app.include_router(router_inicio)
 	
+	scrapearData("España")
+	scrapearData("Portugal")
+	scrapearData("Mibel")
+
+	return app

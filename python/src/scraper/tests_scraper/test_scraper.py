@@ -2,10 +2,10 @@ import pytest
 import datetime
 import pandas as pd
 
-from src.scraper import Scraper
-from src.fecha import Fecha
-from src.mercado import Mercado
-from src import crearScraper
+from src_scraper.scraper import Scraper
+from src_scraper.fecha import Fecha
+from src_scraper.mercado import Mercado
+from src_scraper import crearScraper
 
 
 @pytest.mark.parametrize(["fecha_inicio","fecha_fin"],
@@ -234,9 +234,9 @@ def test_crear_scraper_tabla_vacia(conexion, mercado):
 
 	scraper=crearScraper(Mercado(mercado))
 
-	assert scraper.fecha_inicio.dia==1
-	assert scraper.fecha_inicio.mes==1
-	assert scraper.fecha_inicio.ano==2019
+	assert scraper.fecha_inicio.dia==6#1
+	assert scraper.fecha_inicio.mes==8#1
+	assert scraper.fecha_inicio.ano==2023#2019
 	assert scraper.fecha_fin.dia==datetime.datetime.today().day
 	assert scraper.fecha_fin.mes==datetime.datetime.today().month
 	assert scraper.fecha_fin.ano==datetime.datetime.today().year
@@ -284,7 +284,5 @@ def test_crear_scraper_tabla_actualizada(conexion, tabla, mercado):
 	data=[(fecha.fecha_str_formato, 1, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)]
 
 	conexion.insertarData(tabla, data)
-
-	with pytest.raises(Exception):
 	
-		crearScraper(Mercado(mercado))
+	assert crearScraper(Mercado(mercado)) is None

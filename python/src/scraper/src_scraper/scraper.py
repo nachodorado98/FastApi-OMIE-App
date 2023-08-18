@@ -6,7 +6,7 @@ import time
 
 from .fecha import Fecha
 from .mercado import Mercado
-from .database.conexion import Conexion
+from .database_scraper.conexion import Conexion
 
 # Clase para scrapear
 class Scraper:

@@ -1,45 +1,21 @@
 import os
 import sys
-sys.path.append(os.path.abspath(".."))
+sys.path.append("..")
 
 import pytest
+from fastapi.testclient import TestClient 
 
-from src.scraper import Scraper
-from src.fecha import Fecha
-from src.mercado import Mercado
-from src.database.conexion import Conexion
+from src import crear_app
 
-@pytest.fixture
-def mercado():
+@pytest.fixture()
+def app():
 
-	return Mercado()
+	app=crear_app()
 
-@pytest.fixture
-def fecha_inicio():
+	return app
 
-	return Fecha()
 
-@pytest.fixture
-def fecha_fin():
+@pytest.fixture()
+def cliente(app):
 
-	return Fecha(2,1,2019)
-
-@pytest.fixture
-def scraper(mercado, fecha_inicio, fecha_fin):
-
-	return Scraper(mercado, fecha_inicio, fecha_fin)
-
-@pytest.fixture
-def conexion():
-
-	con=Conexion()
-
-	con.c.execute("DELETE FROM prodespana")
-
-	con.c.execute("DELETE FROM prodportugal")
-
-	con.c.execute("DELETE FROM prodmibel")
-
-	con.bbdd.commit()
-
-	return con
+	return TestClient(app)
