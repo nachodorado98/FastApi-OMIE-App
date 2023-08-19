@@ -3,6 +3,7 @@ import time
 
 from .metadata.confmetadata import *
 from .routers.inicio import router_inicio
+from .routers.producciones import router_producciones
 
 from .scraper.src_scraper import crearScraper
 from .scraper.src_scraper.mercado import Mercado
@@ -36,6 +37,7 @@ def crear_app():
 				license_info=LICENCIA)
 
 	app.include_router(router_inicio)
+	app.include_router(router_producciones)
 	
 	scrapearData("España")
 	scrapearData("Portugal")

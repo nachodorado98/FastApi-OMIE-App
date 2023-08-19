@@ -1,6 +1,6 @@
 import psycopg2
 from psycopg2.extras import RealDictCursor
-from typing import List, Optional
+from typing import List, Optional, Dict
 import datetime
 
 from .confconexion import *
@@ -58,3 +58,14 @@ class Conexion:
 		fecha_maxima=self.c.fetchone()
 
 		return datetime.datetime(fecha_maxima["fecha_maxima"].year, fecha_maxima["fecha_maxima"].month, fecha_maxima["fecha_maxima"].day)
+
+	# Metodo para obtener los registros de una tabla
+	def obtenerRegistros(self, tabla:str)->Optional[List[Dict]]:
+
+		self.c.execute(f"""SELECT *
+							FROM {tabla}
+							ORDER BY fecha, hora""")
+
+		registros=self.c.fetchall()
+
+		return None if registros==[] else registros
