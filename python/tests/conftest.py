@@ -34,3 +34,8 @@ def conexion():
 	con.bbdd.commit()
 
 	return con
+
+@pytest.fixture
+def conexion_simple():
+
+	return Conexion()

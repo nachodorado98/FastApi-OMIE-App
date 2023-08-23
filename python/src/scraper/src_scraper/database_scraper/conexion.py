@@ -82,3 +82,12 @@ class Conexion:
 		registros=self.c.fetchall()
 
 		return None if registros==[] else registros
+
+	# Metodo para eliminar registros desde una fecha
+	def eliminarRegistros(self, tabla:str, fecha:str)->None:
+
+		self.c.execute(f"""DELETE FROM {tabla}
+							WHERE fecha>=%s""",
+							(fecha,))
+
+		self.bbdd.commit()

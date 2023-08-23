@@ -78,3 +78,28 @@ def test_obtener_registros_rango_tabla_llena(conexion, tabla, limite, saltar, fe
 
 	assert len(registros)==limite
 	assert registros[0]["fecha"].strftime("%Y-%m-%d")==fecha
+
+
+@pytest.mark.parametrize(["tabla", "fecha", "cantidad"],
+	[
+		("prodespana","2020-01-01",4),
+		("prodportugal","2019-01-02",2),
+		("prodmibel","2019-06-01",3)
+	]
+)
+def test_eliminar_registros_fecha(conexion, tabla, fecha, cantidad):
+
+	data=[("2019-01-02", 1, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
+			("2020-01-01", 2, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
+			("2019-06-01", 1, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
+			("2023-08-17", 1, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
+			("2019-01-01", 2, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
+			("2019-01-01", 3, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)]
+
+	conexion.insertarData(tabla, data)
+
+	conexion.eliminarRegistros(tabla, fecha)
+
+	registros=conexion.obtenerRegistros(tabla)
+
+	assert len(registros)==cantidad

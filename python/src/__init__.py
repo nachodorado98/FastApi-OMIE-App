@@ -4,6 +4,8 @@ import time
 from .metadata.confmetadata import *
 from .routers.inicio import router_inicio
 from .routers.producciones import router_producciones
+from .autenticacion.auth import router_auth
+from .routers.refrescar import router_refrescar
 
 from .scraper.src_scraper import crearScraper
 from .scraper.src_scraper.mercado import Mercado
@@ -38,7 +40,9 @@ def crear_app():
 
 	app.include_router(router_inicio)
 	app.include_router(router_producciones)
-	
+	app.include_router(router_auth)
+	app.include_router(router_refrescar)
+
 	scrapearData("España")
 	scrapearData("Portugal")
 	scrapearData("Mibel")
