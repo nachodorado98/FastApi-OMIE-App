@@ -1,4 +1,4 @@
-from fastapi import APIRouter, status, Path, Depends, HTTPException
+from fastapi import APIRouter, status, Path, Depends, HTTPException, Query
 from typing import List
 
 from src.scraper.src_scraper.database_scraper.conexion import Conexion
@@ -15,14 +15,23 @@ router_producciones=APIRouter(prefix="/producciones", tags=["Producciones"])
 
 @router_producciones.get("/{mercado}", status_code=status.HTTP_200_OK, summary="Devuelve las producciones del mercado")
 async def obtenerProducciones(mercado:str=Path(..., title="Nombre del mercado", description="El nombre del mercado para obtener sus datos"),
+								todo:bool=Query(False, description="Bool para obtener todos los registros"),
+								saltar:int=Query(0, description="Numero de elementos para saltar", min=0),
+                    			limite:int=Query(24, description="Numero de elementos a obtener", min=1, max=100),
 								con:Conexion=Depends(crearConexion))->List[Produccion]:
 
 	"""
 	Devuelve los diccionarios asociados a los datos de las producciones del mercado disponibles en la BBDD.
 
-	## Parametros
+	## Parametros Path
 
 	- **Mercado**: El nombre del mercado (str).
+
+	## Parametros Query
+
+	- **Todo**: El booleano para obtener todos los registros (bool).
+	- **Saltar**: El numero de registros que quieres saltar (int).
+	- **Limite**: El numero de registros limite que quieres obtener (int).
 
 	## Respuesta
 
@@ -54,6 +63,12 @@ async def obtenerProducciones(mercado:str=Path(..., title="Nombre del mercado", 
 
 		raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Mercado no existente")
 
-	registros=con.obtenerRegistros(tabla_mercado)
+	if todo:
+
+		registros=con.obtenerRegistros(tabla_mercado)
+
+	else:
+
+		registros=con.obtenerRegistrosRango(tabla_mercado, limite, saltar)
 
 	return obtenerObjetosProduccion(registros)

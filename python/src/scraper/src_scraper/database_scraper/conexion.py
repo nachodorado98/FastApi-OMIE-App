@@ -69,3 +69,16 @@ class Conexion:
 		registros=self.c.fetchall()
 
 		return None if registros==[] else registros
+
+	# Metodo para obtener los registros de una tabla con limite y salto
+	def obtenerRegistrosRango(self, tabla:str, limite:int, saltar:int)->Optional[List[Dict]]:
+
+		self.c.execute(f"""SELECT *
+							FROM {tabla}
+							ORDER BY fecha, hora
+							LIMIT {limite}
+							OFFSET {saltar}""")
+
+		registros=self.c.fetchall()
+
+		return None if registros==[] else registros

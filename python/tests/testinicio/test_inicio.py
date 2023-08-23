@@ -1,4 +1,4 @@
-def test_pagina_inicio(cliente):
+def test_pagina_inicio(conexion, cliente):
 
 	contenido=cliente.get("/").json()
 
